@@ -1,5 +1,6 @@
 {
   "expo": {
+    "permissions": ["RECORD_AUDIO"],
     "name": "intellivision",
     "slug": "intellivision",
     "version": "1.0.0",
@@ -11,6 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -25,6 +27,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0a90a1b6-596a-427d-8473-a887c8b16b56"
+      }
+    },
+    "owner": "myself_dhivi"
   }
 }
