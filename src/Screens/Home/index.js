@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import * as Font from 'expo-font';
-import Voice from '@react-native-community/voice'; // Import the Voice module
-import * as Speech from 'expo-speech';
+import { Speech } from 'expo-speech';
 
 const HomeScreen = ({ navigation }) => {
   const [fontLoaded, setFontLoaded] = useState(false);
   const scaleValue = new Animated.Value(0);
   const translateYValue = new Animated.Value(-30);
   const fadeInValue = new Animated.Value(0);
-  const [voiceResponse, setVoiceResponse] = useState('');
-  const [speechStarted, setSpeechStarted] = useState(false); // Track if speech is already started
 
+  // Load custom fonts when the component mounts
   useEffect(() => {
     const loadFont = async () => {
       await Font.loadAsync({
@@ -24,85 +22,52 @@ const HomeScreen = ({ navigation }) => {
       setFontLoaded(true);
     };
 
+    const sayWelcomeMessage = async () => {
+      try {
+        await Speech.speak('Welcome! I shall take a picture.');
+      } catch (error) {
+        console.warn('Error speaking the welcome message:', error);
+      }
+    };
+
     loadFont();
+    sayWelcomeMessage();
   }, []);
 
-  useEffect(() => {
-    // Speak the welcome message when the component mounts
-    speakWelcomeMessage();
-
-    // Setup voice recognition when the component mounts
-    Voice.onSpeechResults = handleSpeechResults;
-    Voice.onSpeechEnd = () => {
-      console.log('Voice recognition ended.');
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
-
-    return () => {
-      Voice.removeAllListeners('onSpeechResults');
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
-  }, []);
-
-  const handleSpeechResults = (e) => {
-    // Process the recognized speech results
-    const speechResult = e.value[0].toLowerCase();
-    console.log('User said:', speechResult); // Console log the user's voice command
-    setVoiceResponse(speechResult);
-    if (speechResult.includes('yes')) {
-      // If the user said 'yes', navigate to the Camera screen
-      navigation.navigate('CameraScreen');
-    }
-  };
-
+  // Navigate to CameraScreen when the "Go to Camera" button is pressed
   const goToCameraScreen = () => {
-    // Start voice recognition
-    Voice.start('en-US');
+    navigation.navigate('CameraScreen');
   };
 
+  // Animation function to fade in the subtitle text
   const startAnimation = () => {
-    // ... Same as before
+    Animated.timing(fadeInValue, {
+      toValue: 1, // Final value of the opacity (fully opaque)
+      duration: 1000, // Duration of the animation in milliseconds
+      useNativeDriver: true, // For better performance, set useNativeDriver to true
+    }).start(); // Start the animation
   };
 
-  const speakWelcomeMessage = () => {
-    if (speechStarted) {
-      return; // If speech is already started, return
-    }
-
-    console.log('Speech started');
-    setSpeechStarted(true);
-    Speech.speak("Welcome, shall I take a picture?", {
-      language: 'en',
-      pitch: 1.0,
-      rate: 0.9,
-      onDone: () => {
-        console.log('Speech done');
-        setSpeechStarted(false); // Reset speechStarted when speech is done
-      },
-      onError: (error) => {
-        console.log('Speech error:', error);
-        setSpeechStarted(false); // Reset speechStarted on error
-      },
-    });
-  };
-
+  // Render nothing while the font is loading
   if (!fontLoaded) {
-    return null; // Render nothing while the font is loading
+    return null;
   }
 
   return (
     <View style={styles.container}>
+      {/* Animated title */}
       <Animated.View style={[styles.titleContainer, { transform: [{ translateY: translateYValue }] }]}>
         <Text style={styles.title}>IntelliVision</Text>
       </Animated.View>
+
+      {/* Animated subtitle */}
       <Animated.Text
-        style={[styles.subtitle, { opacity: fadeInValue, transform: [{ translateX: fadeInValue.interpolate({
-          inputRange: [0, 1],
-          outputRange: [50, 0],
-        }) }] }]}
+        style={[styles.subtitle, { opacity: fadeInValue }]}
       >
         Capture and Analyze the World Around You
       </Animated.Text>
+
+      {/* Button to navigate to the CameraScreen */}
       <TouchableOpacity style={styles.button} onPress={goToCameraScreen} onLayout={startAnimation}>
         <Animated.Text style={[styles.buttonText, { opacity: fadeInValue }]}>Go to Camera</Animated.Text>
       </TouchableOpacity>
@@ -128,7 +93,7 @@ const styles = StyleSheet.create({
     color: '#3b82f6',
   },
   subtitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'poppins-regular',
     color: '#3b82f6',
     marginBottom: 30,
