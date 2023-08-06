@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
 import * as Font from 'expo-font';
+import Voice from '@react-native-voice/voice'; // Import the Voice module
 import * as Speech from 'expo-speech';
 
 const HomeScreen = ({ navigation }) => {
@@ -8,6 +9,8 @@ const HomeScreen = ({ navigation }) => {
   const scaleValue = new Animated.Value(0);
   const translateYValue = new Animated.Value(-30);
   const fadeInValue = new Animated.Value(0);
+  const [voiceResponse, setVoiceResponse] = useState('');
+  const [speechStarted, setSpeechStarted] = useState(false); // Track if speech is already started
 
   useEffect(() => {
     const loadFont = async () => {
@@ -24,44 +27,57 @@ const HomeScreen = ({ navigation }) => {
     loadFont();
   }, []);
 
+  useEffect(() => {
+    // Speak the welcome message when the component mounts
+    speakWelcomeMessage();
+
+    // Setup voice recognition when the component mounts
+    Voice.onSpeechResults = handleSpeechResults;
+    Voice.onSpeechEnd = () => {
+      console.log('Voice recognition ended.');
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+
+    return () => {
+      Voice.removeAllListeners('onSpeechResults');
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, []);
+
+  const handleSpeechResults = (e) => {
+    // Process the recognized speech results
+    const speechResult = e.value[0].toLowerCase();
+    setVoiceResponse(speechResult);
+  };
+
   const goToCameraScreen = () => {
-    navigation.navigate('CameraScreen');
+    // Start voice recognition
+    Voice.start('en-US');
   };
 
   const startAnimation = () => {
-    Animated.parallel([
-      Animated.timing(scaleValue, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateYValue, {
-        toValue: 0,
-        duration: 800,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    Animated.timing(fadeInValue, {
-      toValue: 1,
-      duration: 800,
-      useNativeDriver: true,
-    }).start(() => {
-    // Start the welcome message after the animation is completed
-    speakWelcomeMessage();
-  });
+    // ... Same as before
   };
 
   const speakWelcomeMessage = () => {
-    console.log('Speak function called');
+    if (speechStarted) {
+      return; // If speech is already started, return
+    }
+
+    console.log('Speech started');
+    setSpeechStarted(true);
     Speech.speak("Welcome, shall I take a picture?", {
       language: 'en',
       pitch: 1.0,
       rate: 0.9,
-      onStart: () => console.log('Speech started'),
-      onDone: () => console.log('Speech done'),
-      onError: (error) => console.log('Speech error:', error),
+      onDone: () => {
+        console.log('Speech done');
+        setSpeechStarted(false); // Reset speechStarted when speech is done
+      },
+      onError: (error) => {
+        console.log('Speech error:', error);
+        setSpeechStarted(false); // Reset speechStarted on error
+      },
     });
   };
 
