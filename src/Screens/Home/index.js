@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import * as Font from 'expo-font';
-import Voice from '@react-native-voice/voice'; // Import the Voice module
+import Voice from '@react-native-community/voice'; // Import the Voice module
 import * as Speech from 'expo-speech';
 
 const HomeScreen = ({ navigation }) => {
@@ -47,7 +47,12 @@ const HomeScreen = ({ navigation }) => {
   const handleSpeechResults = (e) => {
     // Process the recognized speech results
     const speechResult = e.value[0].toLowerCase();
+    console.log('User said:', speechResult); // Console log the user's voice command
     setVoiceResponse(speechResult);
+    if (speechResult.includes('yes')) {
+      // If the user said 'yes', navigate to the Camera screen
+      navigation.navigate('CameraScreen');
+    }
   };
 
   const goToCameraScreen = () => {

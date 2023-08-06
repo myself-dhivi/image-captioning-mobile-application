@@ -1,6 +1,5 @@
 {
   "expo": {
-    "permissions": ["RECORD_AUDIO"],
     "name": "intellivision",
     "slug": "intellivision",
     "version": "1.0.0",
